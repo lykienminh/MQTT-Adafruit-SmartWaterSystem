@@ -23,13 +23,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.nio.charset.Charset;
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     //private static final String TAG = "MainActivity";
     private EditText editTextMinute;
     private Button btnSetTime;
+    private EditText editTextMoisture;
+    private Button btnSetMoisture;
     private TextView countdownTime;
     private TextView soil;
     private TextView pump;
@@ -40,10 +41,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private long timeCountInMilliSeconds = 10 * 60 * 1000;
     private CountDownTimer countDownTimer;
 
-    MQTTService mqttService;
+    MQTTService1 mqttService1;
+    MQTTService2 mqttService2;
     boolean fAuto = true;
     boolean fPump = false;
     boolean initFirst = true;
+
+    private String pumpTopic = "lykienminh/feeds/pump";
+    //private String pumpTopic = "CSE_BBC1/feeds/bk-iot-relay";
+    private final String ledTopic = "lykienminh/feeds/led";
+    //private String ledTopic = "CSE_BBC/feeds/bk-iot-led";
+    private final String moistureTopic = "lykienminh/feeds/soilmoisture";
+    //private final String moistureTopic = "CSE_BBC/feeds/bk-iot-soil";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,20 +65,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initViews() {
-        editTextMinute = (EditText) findViewById(R.id.editTextMinute);
-        btnSetTime = (Button) findViewById(R.id.btn_set_time);
-        countdownTime = (TextView) findViewById(R.id.countdownTime);
-        soil = (TextView) findViewById(R.id.soil);
-        pump = (TextView) findViewById(R.id.pump);
-        isAuto = (TextView) findViewById(R.id.isAuto);
-        switchAuto = (Switch) findViewById(R.id.switch_auto);
-        switchPump = (Switch) findViewById(R.id.switch_pump);
+        editTextMinute = findViewById(R.id.editTextMinute);
+        btnSetTime = findViewById(R.id.btn_set_time);
+        countdownTime = findViewById(R.id.countdownTime);
+        soil = findViewById(R.id.soil);
+        pump = findViewById(R.id.pump);
+        isAuto = findViewById(R.id.isAuto);
+        switchAuto = findViewById(R.id.switch_auto);
+        switchPump = findViewById(R.id.switch_pump);
+        editTextMoisture = findViewById(R.id.editMoisture);
+        btnSetMoisture = findViewById(R.id.btn_set_moisture);
     }
 
     private void initListeners() {
         btnSetTime.setOnClickListener(this);
         switchAuto.setOnClickListener(this);
         switchPump.setOnClickListener(this);
+        btnSetMoisture.setOnClickListener(this);
     }
 
     @Override
@@ -77,6 +89,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (view.getId()) {
             case R.id.btn_set_time:
                 setTimeToCountDown();
+                break;
+            case R.id.btn_set_moisture:
+                try {
+                    sendMoisture();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.switch_auto:
                 actionSwitchAuto();
@@ -92,8 +111,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void startMqtt() {
-        mqttService = new MQTTService(getApplicationContext());
-        mqttService.setCallback(new MqttCallbackExtended() {
+        mqttService1 = new MQTTService1(getApplicationContext());
+        mqttService2 = new MQTTService2(getApplicationContext());
+        mqttService1.setCallback(new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean b, String s) {
 
@@ -108,8 +128,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void messageArrived(String topic, MqttMessage mqttMessage) throws JSONException {
                 Log.d("MQTT", mqttMessage.toString());
                 JSONObject soilMoisture = new JSONObject(mqttMessage.toString());
-                Integer moisture = Integer.valueOf(soilMoisture.getString("data"));
+                Integer moisture = Integer.parseInt(soilMoisture.getString("data"));
                 soil.setText(soilMoisture.getString("data") + "&#x0025;");
+
+                if(moisture > 99 || moisture < 0) {
+                    isAuto.setText("Tắt");
+                    fAuto = false;
+                    switchPump.setEnabled(true);
+                    switchAuto.setChecked(false);
+                    Toast.makeText(getApplicationContext(), "Độ ẩm không đúng, thiết bị lỗi. Tạm dừng chương trình", Toast.LENGTH_LONG).show();
+                }
 
                 if(fAuto){
                     if (moisture <= 65 && !switchPump.isChecked()){
@@ -131,21 +159,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+    public void sendMoisture() throws JSONException {
+        if (editTextMoisture.getText().toString().isEmpty()) {
+            Toast.makeText(getApplicationContext(), "Nhập độ ẩm", Toast.LENGTH_LONG).show();
+        }
+        else {
+            sendDataMQTT(moistureTopic, getStringJson("9", editTextMoisture.getText().toString()), true);
+        }
+    }
+
     public String getStringJson(String id, String value) throws  JSONException {
         JSONObject obj = new JSONObject();
         try {
-            if (id == "1") {
+            if (id.equals("1")) {
                 // 0: OFF, 1: RED, 2: GREEN
                 obj.put("id","1");
                 obj.put("name","LED");
                 obj.put("data", value);
                 obj.put("unit","");
             }
-            else if (id == "11") {
+            else if (id.equals("11")) {
                 obj.put("id","11");
                 obj.put("name","RELAY");
                 obj.put("data", value);
                 obj.put("unit","");
+            }
+            else if (id.equals("9")) {
+                obj.put("id","9");
+                obj.put("name","SOIL");
+                obj.put("data", value);
+                obj.put("unit","%");
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -168,12 +211,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void actionSwitchPump() throws JSONException {
-        if (switchPump.isChecked()) {
-            changeStateOfPump(true);
-        }
-        else {
-            changeStateOfPump(false);
-        }
+        changeStateOfPump(switchPump.isChecked());
     }
 
     private void setTimeToCountDown() {
@@ -182,7 +220,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void setTimerValues() {
-        int time = 10;
+        int time;
         if (!editTextMinute.getText().toString().isEmpty()) {
             // fetching value from edit text and type cast to integer
             time = Integer.parseInt(editTextMinute.getText().toString().trim());
@@ -192,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
         // assigning values after converting to milliseconds
-        timeCountInMilliSeconds = time * 1 * 1000;
+        timeCountInMilliSeconds = time * 1000;
         editTextMinute.getText().clear();
     }
 
@@ -202,8 +240,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             editTextMinute.setEnabled(false);
             btnSetTime.setEnabled(false);
             startCountDownTimer();
-            sendDataMQTT("lykienminh/feeds/pump", getStringJson("11", "1"));
-            sendDataMQTT("lykienminh/feeds/led", getStringJson("1", "2"));
+            sendDataMQTT(pumpTopic, getStringJson("11", "1"), false);
+            sendDataMQTT(ledTopic, getStringJson("1", "2"), true);
         }
         else {
             pump.setText("Tắt");
@@ -211,8 +249,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             btnSetTime.setEnabled(true);
             countDownTimer.cancel();
             countdownTime.setText(hmsTimeFormatter(timeCountInMilliSeconds));
-            sendDataMQTT("lykienminh/feeds/pump", getStringJson("11", "0"));
-            sendDataMQTT("lykienminh/feeds/led", getStringJson("1", "0"));
+            sendDataMQTT(pumpTopic, getStringJson("11", "0"), false);
+            sendDataMQTT(ledTopic, getStringJson("1", "0"), true);
         }
     }
 
@@ -254,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return hms;
     }
 
-    private void sendDataMQTT(String topic, String data){
+    private void sendDataMQTT(String topic, String data, boolean isMqtt1){
         MqttMessage msg = new MqttMessage();
         msg.setId(1234);
         msg.setQos(0);
@@ -265,8 +303,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Log.d("ABC","Publish:"+ msg);
         try {
-            mqttService.mqttAndroidClient.publish(topic, msg);
-        } catch (MqttException e){
+            if(isMqtt1) mqttService1.mqttAndroidClient.publish(topic, msg);
+            else mqttService2.mqttAndroidClient.publish(topic, msg);
+        } catch (MqttException e) {
+            e.printStackTrace();
         }
     }
 }

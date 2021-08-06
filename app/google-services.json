@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1013841432037",
+    "project_id": "smartwatersystem-65530",
+    "storage_bucket": "smartwatersystem-65530.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1013841432037:android:2cb620e29895a025c6b30c",
+        "android_client_info": {
+          "package_name": "com.example.smartwatersystem"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1013841432037-2r87334qbpqc95utl7o808vdc2phqv4l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCFQfr_j9B-pst67XhGnHBHgRSPto7XCI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1013841432037-2r87334qbpqc95utl7o808vdc2phqv4l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -15,18 +15,20 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.UnsupportedEncodingException;
 
-public class MQTTService {
+public class MQTTService2 {
     final String serverUri = "tcp://io.adafruit.com:1883";
 
     final String clientId = "MoNo";
-    final String subscriptionTopic = "lykienminh/feeds/soilmoisture";
+    //final String subscriptionTopic = "lykienminh/feeds/soilmoisture";
+    //final String subscriptionTopic = "CSE_BBC1/feeds/bk-iot-relay";
 
+    //final String username ="CSE_BBC1";
     final String username ="lykienminh";
-    final String password = "aio_lpQL17WnRunnalwLSVG7WGiMWUUP";
+    final String password = "";
 
     public MqttAndroidClient mqttAndroidClient;
 
-    public MQTTService(Context context) {
+    public MQTTService2(Context context) {
         mqttAndroidClient = new MqttAndroidClient(context, serverUri, clientId);
 
         mqttAndroidClient.setCallback(new MqttCallbackExtended() {
@@ -71,7 +73,7 @@ public class MQTTService {
                     disconnectedBufferOptions.setPersistBuffer(false);
                     disconnectedBufferOptions.setDeleteOldestMessages(false);
                     mqttAndroidClient.setBufferOpts(disconnectedBufferOptions);
-                    subscribeToTopic();
+                    //subscribeToTopic();
                 }
 
                 @Override
@@ -81,36 +83,6 @@ public class MQTTService {
             });
         } catch (MqttException ex) {
             ex.printStackTrace();
-        }
-    }
-
-    private void subscribeToTopic() {
-        try {
-            mqttAndroidClient.subscribe(subscriptionTopic, 0, null, new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.w("Mqtt","Subscribed!");
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.w("Mqtt","Subscribed fail!");
-                }
-            });
-        } catch ( MqttException ex) {
-            System.err.println("Exceptionst subscribing");
-            ex.printStackTrace();
-        }
-    }
-
-    public void publishToTopic(String topic, String content) {
-        byte[] encodedPayload;
-        try {
-            encodedPayload = content.getBytes("UTF-8");
-            MqttMessage message = new MqttMessage(encodedPayload);
-            mqttAndroidClient.publish(topic, message);
-        } catch (UnsupportedEncodingException | MqttException e) {
-            e.printStackTrace();
         }
     }
 }

@@ -189,25 +189,6 @@
         app:layout_constraintHorizontal_bias="0.475"
         app:layout_constraintStart_toStartOf="@+id/text_time" />
 
-    <EditText
-        android:id="@+id/editTextMinute"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:gravity="center"
-        android:hint="Nhập số phút"
-        android:inputType="datetime"
-        android:maxLength="15"
-        android:maxLines="1"
-        android:minEms="5"
-        android:text=""
-        android:textColor="#584481"
-        android:textColorHint="#757575"
-        android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="@+id/switch_pump"
-        app:layout_constraintTop_toBottomOf="@+id/switch_pump" />
-
     <TextView
         android:id="@+id/text_custom"
         android:layout_width="wrap_content"
@@ -234,19 +215,40 @@
         android:textColor="#757575"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="@+id/text_custom"
-        app:layout_constraintTop_toBottomOf="@+id/text_custom" />
+        app:layout_constraintTop_toBottomOf="@+id/text_custom"
+        tools:ignore="UseSwitchCompatOrMaterialXml" />
 
     <Switch
         android:id="@+id/switch_auto"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="70dp"
+        android:layout_marginTop="20dp"
         android:checked="true"
         android:ellipsize="middle"
         android:fontFamily="@font/roboto"
         android:forceDarkAllowed="false"
         android:text="Tự động"
         android:textColor="#757575"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="@+id/switch_pump"
+        app:layout_constraintTop_toBottomOf="@+id/switch_pump"
+        tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+    <EditText
+        android:id="@+id/editTextMinute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="70dp"
+        android:gravity="center"
+        android:hint="Nhập số phút"
+        android:inputType="datetime"
+        android:maxLength="15"
+        android:maxLines="1"
+        android:minEms="5"
+        android:text=""
+        android:textColor="#584481"
+        android:textColorHint="#757575"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="@+id/switch_pump"
         app:layout_constraintStart_toEndOf="@+id/switch_pump"
@@ -263,6 +265,36 @@
         app:layout_constraintBottom_toBottomOf="@+id/editTextMinute"
         app:layout_constraintStart_toEndOf="@+id/editTextMinute"
         app:layout_constraintTop_toTopOf="@+id/editTextMinute" />
+
+    <EditText
+        android:id="@+id/editMoisture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:hint="Độ ẩm"
+        android:inputType="datetime"
+        android:maxLength="15"
+        android:maxLines="1"
+        android:minEms="5"
+        android:text=""
+        android:textColor="#584481"
+        android:textColorHint="#757575"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@id/switch_auto"
+        app:layout_constraintStart_toStartOf="@id/editTextMinute"
+        app:layout_constraintTop_toTopOf="@id/switch_auto" />
+
+    <Button
+        android:id="@+id/btn_set_moisture"
+        android:layout_width="60dp"
+        android:layout_height="40dp"
+        android:layout_centerHorizontal="true"
+        android:text="OK"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toBottomOf="@+id/editMoisture"
+        app:layout_constraintStart_toStartOf="@id/btn_set_time"
+        app:layout_constraintTop_toTopOf="@+id/editMoisture" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
